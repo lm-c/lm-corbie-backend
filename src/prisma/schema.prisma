@@ -1,0 +1,84 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      =  env("DATABASE_URL")
+}
+
+// criar um migration yarn prisma migrate dev --schema=src/prisma/schema.prisma
+model Usuario{
+  id Int @id 
+  cliente_lizard_id Int
+  nome String @db.VarChar(150)
+  email String @db.VarChar(150)
+  login String @db.VarChar(30)
+  senha String @db.VarChar(150)
+  acesso_todos_chamados Boolean
+  aprovar_orcamento Boolean
+  chamado_cliente_obrigatorio Boolean @default(false)
+  situacao Int
+  criado_em DateTime @default(now())
+  atualizado_em DateTime @default(now())
+
+  @@map("usuarios")
+  tasks Ticket[] @relation(name: "UserTikets")
+  tasksTi Ticket[] @relation(name: "UserTiketsTi")
+}
+
+model Ticket{
+  id Int @id @default(autoincrement())
+  chamado_id Int?
+  chamado_cliente String @db.VarChar(14)
+  assunto String @db.VarChar(45)
+  tipo Int
+  area_atuacao Int
+  impacto Int
+  urgencia Int
+  rotina String? @db.VarChar(100)
+  descricao String
+  solicitante_email String @db.VarChar(250)
+  situacao Int @default(0)
+  notif_criacao_lizard Boolean @default(true)
+  notif_edicao_lizard Boolean @default(false)
+  criado_em DateTime @default(now())
+  atualizado_em DateTime @default(now())
+  
+  user Usuario @relation(name: "UserTikets", fields: [usuario_id], references: [id])
+  userTi Usuario @relation(name: "UserTiketsTi", fields: [contato_ti_id], references: [id])
+
+  @@map("tickets")
+  usuario_id Int
+  contato_ti_id Int
+  
+  acoes Acao[] @relation(name: "AcaoTikets")
+}
+
+model Acao{
+  id Int @id @default(autoincrement())
+  descricao String
+  tipo_acao Int
+  acao_de Int
+  criado_por String @db.VarChar(250)
+  vinculado_lizard Boolean @default(false)
+  notif_criacao_lizard Boolean @default(true)
+  criado_em DateTime @default(now())
+  atualizado_em DateTime @default(now())
+  
+  user Ticket @relation(name: "AcaoTikets", fields: [ticket_id], references: [id])
+
+  @@map("acoes")
+  ticket_id Int
+}
+
+model Ftp_Customax{
+  url_base String @db.VarChar(200) @id
+  user String @db.VarChar(200)
+  password String @db.VarChar(200)
+  
+  @@map("ftp_customax")
+}
